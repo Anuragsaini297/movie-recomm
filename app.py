@@ -5,25 +5,32 @@ import pickle
 import pandas as pd
 import requests
 
-# Download similarity.pkl from Google Drive
-file_id = "12ruJiBhb3tV30nMSySNpNxQAI9ofGbbS"  # your file ID
-output_path = "similarity.pkl"
+# === Google Drive File IDs ===
+SIMILARITY_ID = "12ruJiBhb3tV30nMSySNpNxQAI9ofGbbS"
+MOVIE_DICT_ID = "1VXtowOumam1yDIK7RCiYDjf9dhUv66wa"
 
-# Check if file already exists
-if not os.path.exists(output_path):
-    print("Downloading similarity.pkl...")
-    gdown.download(f"https://drive.google.com/uc?id={file_id}", output_path, quiet=False)
-else:
-    print("similarity.pkl already exists.")
+# === Download Files ===
+def download_file(file_id, output_path):
+    if not os.path.exists(output_path):
+        print(f"Downloading {output_path}...")
+        gdown.download(f"https://drive.google.com/uc?id={file_id}", output_path, quiet=False)
 
-    # Load the similarity matrix
+download_file(SIMILARITY_ID, "similarity.pkl")
+download_file(MOVIE_DICT_ID, "movie_dict.pkl")
+
+# === Load Files ===
 with open("similarity.pkl", "rb") as f:
     similarity = pickle.load(f)
 
-# Your TMDb API key
+with open("movie_dict.pkl", "rb") as f:
+    movies_dict = pickle.load(f)
+
+movies = pd.DataFrame(movies_dict)
+
+# === API Key ===
 API_KEY = "34d236ffd6e1e129ded294bc6345e95d"
 
-#  Real-time poster fetch from TMDb
+# === Fetch Poster ===
 def fetch_poster(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US"
     try:
@@ -37,7 +44,7 @@ def fetch_poster(movie_id):
         pass
     return "https://via.placeholder.com/500x750.png?text=No+Poster"
 
-#    Recommend similar movies
+# === Recommend Function ===
 def recommend(movie):
     if movie not in movies['title'].values:
         return [], []
@@ -55,13 +62,7 @@ def recommend(movie):
 
     return recommended_movies, recommended_movies_posters
 
-# 📦 Load data
-movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
-movies = pd.DataFrame(movies_dict)
-
-similarity = pickle.load(open('similarity.pkl', 'rb'))
-
-# 🎬 Streamlit UI
+# === Streamlit UI ===
 st.set_page_config(page_title="Movie Recommender", layout="wide")
 st.title('🎥 Movie Recommender System')
 
@@ -81,3 +82,4 @@ if st.button('Recommend'):
                 st.image(posters[i])
     else:
         st.error("Movie not found in the database.")
+
