@@ -52,4 +52,5 @@ def recommend(movie):
     
     movie_index = movies[movies['title'] == movie].index[0]
     distances = similarity[movie_index]
-    movies_list = sorted(enumerate(distances), reverse=True, key=lambda x: x[1])[1]()_
+   movies_list = sorted(enumerate(distances), reverse=True, key=lambda x: x[1])
+
